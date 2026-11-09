@@ -1,0 +1,61 @@
+name: rental-mobil
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: rental-app
+    ports:
+      - "3000:3000"
+    env_file: .env.local
+    environment:
+      - WATCHPACK_POLLING=true   # bantu hot reload di Windows/Mac
+    volumes:
+      - .:/app
+      - /app/node_modules        # jaga node_modules tetap dari image
+      - /app/.next
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    container_name: rental-db
+    env_file: .env.local
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: rental-pgadmin
+    env_file: .env.local
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+
+  storage:
+    image: chrislusf/seaweedfs:latest
+    container_name: rental-storage
+    command: server -dir=/data -s3 -s3.config=/etc/seaweedfs/s3.json
+    ports:
+      - "8333:8333"   # S3 API
+      - "9333:9333"   # master UI (untuk cek status)
+    volumes:
+      - storage_data:/data
+      - ./infra/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+
+volumes:
+  pgdata:
+  pgadmin_data:
+  storage_data:
