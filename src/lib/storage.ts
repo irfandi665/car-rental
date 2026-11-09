@@ -89,3 +89,11 @@ export function getPrivateFileUrl(key: string, expiresInSeconds = 300) {
     { expiresIn: expiresInSeconds },
   );
 }
+
+export async function getFileBytes(key: string) {
+  const res = await internalClient().send(
+    new GetObjectCommand({ Bucket: env("S3_BUCKET"), Key: key }),
+  );
+  const bytes = await res.Body!.transformToByteArray();
+  return { bytes, contentType: res.ContentType ?? "application/octet-stream" };
+}

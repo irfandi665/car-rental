@@ -1,4 +1,5 @@
 export const MAX_ID_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
+export const MAX_CAR_IMAGE_BYTES = 3 * 1024 * 1024; // 3 MB
 
 export type DetectedImage = {
   ext: "jpg" | "png" | "webp";

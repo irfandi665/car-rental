@@ -24,8 +24,18 @@ export function CarCard({ car, days, startStr, endStr }: Props) {
       }`}
     >
       {/* Placeholder: foto asli diunggah admin di Sesi 5 */}
-      <div className="relative flex aspect-[16/9] items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300 text-5xl">
-        🚗
+            <div className="relative flex aspect-[16/9] items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300 text-5xl">
+        {car.imageKey ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={`/api/cars/${car.id}/image?v=${encodeURIComponent(car.imageKey)}`}
+            alt={`${car.brand} ${car.name}`}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          "🚗"
+        )}
         {!car.available && (
           <span className="absolute right-3 top-3 rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white">
             Tidak Tersedia

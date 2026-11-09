@@ -1,6 +1,7 @@
 import { randomInt } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { calculateTotal } from "@/lib/pricing";
+import { lockCar } from "@/lib/car-lock";
 
 export class BookingError extends Error {
   constructor(
@@ -66,6 +67,7 @@ export async function createBooking(input: CreateBookingInput) {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       return await prisma.$transaction(async (tx) => {
+        await lockCar(tx, input.carId);
         const car = await tx.car.findFirst({
           where: { id: input.carId, isActive: true },
         });
