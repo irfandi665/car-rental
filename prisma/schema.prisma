@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [btree_gist] // Tambahkan ini agar Prisma mengenali ekstensinya
+}
+
+enum Role {
+  ADMIN
+}
+
+enum Transmission {
+  MANUAL
+  AUTOMATIC
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  CANCELLED
+}
+
+// Hanya admin yang punya akun. Customer cukup mengisi form booking.
+model User {
+  id           String             @id @default(uuid())
+  email        String             @unique
+  name         String
+  passwordHash String
+  role         Role               @default(ADMIN)
+  createdAt    DateTime           @default(now())
+  statusLogs   BookingStatusLog[]
+}
+
+model Car {
+  id           String        @id @default(uuid())
+  name         String
+  brand        String
+  plateNumber  String        @unique
+  transmission Transmission
+  seats        Int
+  pricePerDay  Int // Rupiah, tanpa desimal
+  description  String?
+  imageKey     String? // key objek di storage S3
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  bookings     Booking[]
+  blockedDates BlockedDate[]
+
+  @@index([isActive, seats, transmission])
+}
+
+model Accessory {
+  id          String             @id @default(uuid())
+  name        String             @unique
+  description String?
+  pricePerDay Int
+  isActive    Boolean            @default(true)
+  bookings    BookingAccessory[]
+}
+
+model Booking {
+  id               String             @id @default(uuid())
+  code             String             @unique // contoh: RNT-8F3K2A
+  carId            String
+  car              Car                @relation(fields: [carId], references: [id])
+  startDate        DateTime           @db.Date
+  endDate          DateTime           @db.Date // inklusif: hari terakhir sewa
+  totalDays        Int
+  carPricePerDay   Int // snapshot harga saat booking
+  totalPrice       Int
+  customerName     String
+  customerWhatsapp String
+  customerEmail    String?
+  idDocumentKey    String // key foto KTP/SIM di storage (private)
+  notes            String?
+  status           BookingStatus      @default(PENDING)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  accessories      BookingAccessory[]
+  statusLogs       BookingStatusLog[]
+
+  @@index([carId, startDate, endDate])
+  @@index([status])
+}
+
+model BookingAccessory {
+  id          String    @id @default(uuid())
+  bookingId   String
+  booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  accessoryId String
+  accessory   Accessory @relation(fields: [accessoryId], references: [id])
+  quantity    Int       @default(1)
+  pricePerDay Int // snapshot harga saat booking
+
+  @@unique([bookingId, accessoryId])
+}
+
+// Admin memblokir tanggal manual (mobil masuk bengkel, dll.) - F-04
+model BlockedDate {
+  id        String   @id @default(uuid())
+  carId     String
+  car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([carId, startDate, endDate])
+}
+
+// Audit trail perubahan status - F-05
+model BookingStatusLog {
+  id          String         @id @default(uuid())
+  bookingId   String
+  booking     Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  fromStatus  BookingStatus?
+  toStatus    BookingStatus
+  note        String?
+  changedById String? // null = dibuat sistem/customer
+  changedBy   User?          @relation(fields: [changedById], references: [id])
+  createdAt   DateTime       @default(now())
+
+  @@index([bookingId, createdAt])
+}
