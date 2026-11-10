@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { changeStatusAction } from "@/app/admin/actions";
@@ -21,7 +22,21 @@ const ACTION: Record<string, { label: string; cls: string }> = {
   CANCELLED: { label: "Batalkan", cls: "bg-red-600 hover:bg-red-700" },
 };
 
-export default async function OrderDetailPage({
+export default function OrderDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ code: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  return (
+    <Suspense fallback={<p className="text-sm text-slate-500">Memuat detail pesanan...</p>}>
+      <OrderDetailContent params={params} searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function OrderDetailContent({
   params,
   searchParams,
 }: {

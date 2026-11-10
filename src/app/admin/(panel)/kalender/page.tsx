@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { createBlockAction, deleteBlockAction } from "@/app/admin/actions";
 import { Flash } from "@/components/admin/flash";
@@ -24,7 +25,19 @@ const CELL_CLS = {
   BLOCKED: "bg-slate-500",
 } as const;
 
-export default async function CalendarPage({
+export default function CalendarPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  return (
+    <Suspense fallback={<p className="text-sm text-slate-500">Memuat kalender...</p>}>
+      <CalendarContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function CalendarContent({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

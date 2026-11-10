@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
-import type { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 import { BookingError, createBooking, isOverlapError } from "@/lib/booking-service";
 import { validateDateRange } from "@/lib/dates";
 import { MAX_ID_FILE_BYTES, detectImage } from "@/lib/image-file";
+import { processDueNotifications } from "@/lib/notifications/processor";
 import { deleteFile, uploadPrivateFile } from "@/lib/storage";
 import { bookingSchema, fieldErrors } from "@/lib/validation";
 
@@ -88,6 +89,12 @@ export async function POST(req: NextRequest) {
       accessoryIds: data.accessoryIds,
       idDocumentKey: key,
     });
+
+    // Dijalankan setelah respons terkirim ke customer, jadi tidak memperlambat booking
+    after(() =>
+      processDueNotifications().catch((err) => console.error("[notif]", err)),
+    );
+
     return json({ code: booking.code }, 201);
   } catch (e) {
     await deleteFile(key).catch(() => {});

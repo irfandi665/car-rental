@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { Flash } from "@/components/admin/flash";
 import { StatusBadge } from "@/components/admin/status-badge";
@@ -8,7 +9,19 @@ import { first } from "@/lib/search-params";
 
 const STATUSES: Status[] = ["PENDING", "APPROVED", "COMPLETED", "CANCELLED"];
 
-export default async function OrdersPage({
+export default function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  return (
+    <Suspense fallback={<p className="text-sm text-slate-500">Memuat pesanan...</p>}>
+      <OrdersContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function OrdersContent({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

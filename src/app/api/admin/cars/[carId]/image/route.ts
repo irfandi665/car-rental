@@ -5,8 +5,6 @@ import { MAX_CAR_IMAGE_BYTES, detectImage } from "@/lib/image-file";
 import { prisma } from "@/lib/prisma";
 import { deleteFile, uploadPrivateFile } from "@/lib/storage";
 
-export const runtime = "nodejs";
-
 const json = (body: unknown, status: number) => Response.json(body, { status });
 
 export async function POST(

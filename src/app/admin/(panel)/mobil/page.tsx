@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createCarAction, updateCarAction } from "@/app/admin/actions";
 import { CarImageUpload } from "@/components/admin/car-image-upload";
 import { Flash } from "@/components/admin/flash";
@@ -6,7 +7,19 @@ import { first } from "@/lib/search-params";
 
 const input = "mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm";
 
-export default async function CarsPage({
+export default function CarsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  return (
+    <Suspense fallback={<p className="text-sm text-slate-500">Memuat daftar mobil...</p>}>
+      <CarsContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function CarsContent({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

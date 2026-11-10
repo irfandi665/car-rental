@@ -84,6 +84,7 @@ model Booking {
   updatedAt        DateTime           @updatedAt
   accessories      BookingAccessory[]
   statusLogs       BookingStatusLog[]
+  notifications    Notification[]
 
   @@index([carId, startDate, endDate])
   @@index([status])
@@ -128,4 +129,43 @@ model BookingStatusLog {
   createdAt   DateTime       @default(now())
 
   @@index([bookingId, createdAt])
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  EMAIL
+}
+
+enum NotificationStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+}
+
+enum NotificationKind {
+  BOOKING_CREATED_CUSTOMER
+  BOOKING_CREATED_ADMIN
+}
+
+model Notification {
+  id                String              @id @default(uuid())
+  bookingId         String
+  booking           Booking             @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  kind              NotificationKind
+  channel           NotificationChannel
+  recipient         String // nomor WA (628...) atau alamat email
+  payload           Json // pesan yang sudah dirender (snapshot)
+  status            NotificationStatus  @default(PENDING)
+  attempts          Int                 @default(0)
+  nextAttemptAt     DateTime            @default(now())
+  lockedAt          DateTime?
+  sentAt            DateTime?
+  lastError         String?
+  providerMessageId String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([bookingId])
 }

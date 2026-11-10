@@ -207,3 +207,15 @@ export async function updateCarAction(formData: FormData) {
   revalidatePath("/");
   redirectWith(back, "ok", "Mobil diperbarui. Harga baru berlaku untuk booking berikutnya.");
 }
+
+/* ---------- Notifikasi ---------- */
+
+export async function retryNotificationAction(formData: FormData) {
+  await requireAdmin();
+  await prisma.notification.updateMany({
+    where: { id: str(formData, "id"), status: "FAILED" },
+    data: { status: "PENDING", attempts: 0, nextAttemptAt: new Date() },
+  });
+  revalidatePath("/admin/notifikasi");
+  redirectWith("/admin/notifikasi", "ok", "Dijadwalkan ulang. Akan dikirim dalam ±30 detik.");
+}

@@ -1,10 +1,19 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { logoutAction } from "@/app/admin/actions";
 import { requireAdmin } from "@/lib/auth";
 
 export const metadata = { title: "Panel Admin", robots: { index: false } };
 
-export default async function PanelLayout({ children }: { children: React.ReactNode }) {
+export default function PanelLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<main className="mx-auto max-w-6xl px-4 py-6">Memuat panel admin...</main>}>
+      <AuthenticatedPanelLayout>{children}</AuthenticatedPanelLayout>
+    </Suspense>
+  );
+}
+
+async function AuthenticatedPanelLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
 
   return (
@@ -16,6 +25,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <Link href="/admin/pesanan" className="hover:underline">Pesanan</Link>
             <Link href="/admin/kalender" className="hover:underline">Kalender</Link>
             <Link href="/admin/mobil" className="hover:underline">Mobil</Link>
+            <Link href="/admin/notifikasi" className="hover:underline">Notifikasi</Link>
           </nav>
           <form action={logoutAction} className="ml-auto flex items-center gap-3 text-sm">
             <span className="text-slate-500">{admin.name}</span>

@@ -2,6 +2,7 @@ import { randomInt } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { calculateTotal } from "@/lib/pricing";
 import { lockCar } from "@/lib/car-lock";
+import { enqueueBookingCreated } from "@/lib/notifications/enqueue";
 
 export class BookingError extends Error {
   constructor(
@@ -105,7 +106,7 @@ export async function createBooking(input: CreateBookingInput) {
 
         // Jika bentrok dengan booking aktif lain, constraint database
         // "booking_no_overlap" akan menolak INSERT ini.
-        return tx.booking.create({
+        const created = await tx.booking.create({
           data: {
             code: generateBookingCode(),
             carId: car.id,
@@ -136,6 +137,22 @@ export async function createBooking(input: CreateBookingInput) {
           },
           select: { id: true, code: true },
         });
+
+        await enqueueBookingCreated(tx, {
+          bookingId: created.id,
+          code: created.code,
+          customerName: input.customerName,
+          customerWhatsapp: input.customerWhatsapp,
+          customerEmail: input.customerEmail,
+          carName: `${car.brand} ${car.name}`,
+          startDate: input.start,
+          endDate: input.end,
+          days: input.days,
+          accessoryNames: accessories.map((a) => a.name),
+          totalPrice,
+        });
+
+        return created;
       });
     } catch (e) {
       if (isCodeCollision(e) && attempt < 2) continue; // kode acak kebetulan kembar

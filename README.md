@@ -90,6 +90,8 @@ docker compose exec app npx tsx scripts/create-admin.ts
 
 Buka aplikasi di [http://localhost:3000](http://localhost:3000). Panel admin berada di `/admin/login`. pgAdmin tersedia di [http://localhost:5050](http://localhost:5050), SeaweedFS S3 di port `8333`, dan antarmuka master SeaweedFS di port `9333`.
 
+Untuk memindahkan workflow development dari Windows ke WSL2, termasuk opsi mempertahankan atau memindahkan data Docker, ikuti [tutorial migrasi Docker ke WSL2](./docs/MIGRASI-DOCKER-WSL.md).
+
 Log dan layanan dapat diperiksa dengan:
 
 ```bash

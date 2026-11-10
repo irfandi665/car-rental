@@ -9,8 +9,6 @@ services:
     ports:
       - "3000:3000"
     env_file: .env.local
-    environment:
-      - WATCHPACK_POLLING=true   # bantu hot reload di Windows/Mac
     volumes:
       - .:/app
       - /app/node_modules        # jaga node_modules tetap dari image
@@ -54,6 +52,13 @@ services:
     volumes:
       - storage_data:/data
       - ./infra/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+  
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: rental-mailpit
+    ports:
+      - "8025:8025"   # Web UI inbox
+      - "1025:1025"   # SMTP
 
 volumes:
   pgdata:

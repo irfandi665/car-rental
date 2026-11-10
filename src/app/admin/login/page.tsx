@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { loginAction } from "@/app/admin/actions";
 import { Flash } from "@/components/admin/flash";
@@ -6,7 +7,19 @@ import { first } from "@/lib/search-params";
 
 export const metadata = { title: "Login Admin", robots: { index: false } };
 
-export default async function LoginPage({
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  return (
+    <Suspense fallback={<main className="p-6 text-center text-sm text-slate-500">Memuat login...</main>}>
+      <LoginContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function LoginContent({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
